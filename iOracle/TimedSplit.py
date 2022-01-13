@@ -69,3 +69,4 @@ class train_val_split:
         end_ind = self.df[self.df.Date<=end].index.max()
         
         return {self._strfdate(self.df.Date[n-5]):self._strfdate(self.df.Date[n]) for n in range(start_ind, end_ind+1)}
+        
