@@ -33,7 +33,8 @@ bucket_folder = MODEL_FOLDER
 model_name = 'rf_random.joblib'
 
 def download_model(model_name):
-    client = storage.Client().bucket(bucket)
+    # client = storage.Client().bucket(bucket)
+    client = storage.Client.from_service_account_json('service-account-file.json').bucket(bucket)
     storage_location = f'{bucket_folder}/{model_name}'
     blob = client.blob(storage_location)
     blob.download_to_filename('model.joblib')
@@ -55,8 +56,7 @@ def main(ticker_name):
 
     # get predictions
     pred = rf_model.predict(rf_test)
-    pred_df = pd.DataFrame(pred, index=index, columns=['pred'])
-
+    pred_df = pd.DataFrame(pred, index=index, columns=['prediction'])
     return pred_df
 
 if __name__ == '__main__':

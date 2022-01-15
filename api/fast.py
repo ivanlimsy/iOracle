@@ -18,8 +18,8 @@ def index():
 
 @app.get("/predict/")
 def predict(ticker_name):
-    pred = main(ticker_name)
-    return {'prediction': pred}
+    prediction = main(ticker_name)
+    return prediction
 
 if __name__ == '__main__':
     print(predict('aapl'))
