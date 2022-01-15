@@ -25,7 +25,7 @@ class preproc:
             self.df[str(n) + 'd' + ' ma'] = SMAIndicator(self.df['Adj Close'], window=n).sma_indicator()
             self.df[str(n) + 'd' + ' rsi'] = RSIIndicator(self.df['Adj Close'], window=n).rsi()
             self.df[str(n) + 'd' + ' bbwidth'] = BollingerBands(self.df['Adj Close'], window=n).bollinger_wband()
-            feature_names = feature_names + [str(n) + 'd' + ' ma' , str(n) + 'd' + ' rsi', str(n) + 'd' + ' bbwidth']
+            self.feature_names = self.feature_names + [str(n) + 'd' + ' ma' , str(n) + 'd' + ' rsi', str(n) + 'd' + ' bbwidth']
         
         # add VIX column and to feature_names
         self.df["VIX"] = _get_dataframe("^VIX", start=self.start, end=self.end)["Adj Close"]
@@ -51,7 +51,10 @@ class preproc:
         #fit and transform features
         self.df[self.feature_names] = scaler.fit_transform(self.df[self.feature_names])
         #Show scaled features
-        return self.df   
+        return self.df
+
+    def get_X(self):
+        return self.df[self.feature_names]   
     
     
 
