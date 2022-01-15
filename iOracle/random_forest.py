@@ -22,37 +22,61 @@ from sklearn.pipeline import Pipeline
 
 
 
+def train_test_sets(scaled_df, features):
+    total_train = scaled_df.loc[(scaled_df.index >= "2018-01-01") & (scaled_df.index <= "2020-12-31")]
+    X_train = total_train[features]
+    y_train = total_train['5d_future_close']
+    total_test = scaled_df.loc[(scaled_df.index >= "2021-01-01") & (scaled_df.index <= "2021-12-23")]
+    X_test = total_test[features]
+    y_test = total_test['5d_future_close']
+    return X_train, X_test, y_train, y_test
 
 
-def rf_random_grid_search():
+class trainer:
+    def __init__(self, X, y):
+        """
+            X: pandas DataFrame
+            y: pandas Series
+        """
+        self.X = X
+        self.y = y
+
     
-    # Trees 
-    n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
-    # Features to consider at every split
-    max_features = ['auto', 'sqrt']
-    # Maximum number of levels in tree
-    max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
-    max_depth.append(None)
-    # Minimum samples to split a node
-    min_samples_split = [2, 5, 10]
-    # Minimum number at each leaf node
-    min_samples_leaf = [1, 2, 4]
-    # Method of selecting samples at each tree
-    bootstrap = [True, False]
-
-    # Create the random grid
-    random_grid = {'n_estimators': n_estimators,
-                   'max_features': max_features,
-                   'max_depth': max_depth,
-                   'min_samples_split': min_samples_split,
-                   'min_samples_leaf': min_samples_leaf,
-                   'bootstrap': bootstrap}
-    # Instantiate model
-    rf = RandomForestRegressor()
-    # Random search of parameters with 5 folds
-    model = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, scoring = 'neg_mean_squared_error', n_iter = 100, cv = splits, verbose=2, random_state=42, n_jobs = -1)
+    def split(self):
+        self.split = train_val_split(X_train, end = '2020-12-31')
+        self.splits = self.split.split_by_index()
     
-    return model
+
+    def rf_random_grid_search(self):
+        
+        # Trees 
+        n_estimators = [int(x) for x in np.linspace(start = 200, stop = 2000, num = 10)]
+        # Features to consider at every split
+        max_features = ['auto', 'sqrt']
+        # Maximum number of levels in tree
+        max_depth = [int(x) for x in np.linspace(10, 110, num = 11)]
+        max_depth.append(None)
+        # Minimum samples to split a node
+        min_samples_split = [2, 5, 10]
+        # Minimum number at each leaf node
+        min_samples_leaf = [1, 2, 4]
+        # Method of selecting samples at each tree
+        bootstrap = [True, False]
+
+        # Create the random grid
+        random_grid = {'n_estimators': n_estimators,
+                    'max_features': max_features,
+                    'max_depth': max_depth,
+                    'min_samples_split': min_samples_split,
+                    'min_samples_leaf': min_samples_leaf,
+                    'bootstrap': bootstrap}
+        # Instantiate model
+        rf = RandomForestRegressor()
+        # Random search of parameters with 5 folds
+        self.model = RandomizedSearchCV(estimator = rf, param_distributions = random_grid, scoring = 'neg_mean_squared_error', n_iter = 100, cv = self.splits, verbose=2, random_state=42, n_jobs = -1)
+    
+    def run(self):
+        self.model.fit(self.X, self.y)
 
 
     
@@ -67,24 +91,17 @@ def rf_random_grid_search():
 
 if __name__ == "__main__":
     # Get ticker
-    df = _get_dataframe("AAPL", start="2017-01-01", end="2022-01-01")
-    # add all features
-    raw_df = preproc(df)
-    feat_added_df, feature_names = raw_df.add_features()
-    target_added_df = raw_df.add_target()
+    raw_df = _get_dataframe("AAPL", start="2017-01-01", end="2022-01-01")
     
+    # Add all features
+    pp = preproc(raw_df)
+    pp_df, feature_names = pp.rf_main()
     
-    y = df["fare_amount"]
-    X = df.drop("fare_amount", axis=1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
-    # Train and save model, locally and
-    trainer = Trainer(X=X_train, y=y_train)
-    trainer.set_experiment_name('xp2')
-    trainer.run()
-    rmse = trainer.evaluate(X_test, y_test)
-    print(f"rmse: {rmse}")
-    trainer.save_model_locally()
-    storage_upload()
+    # Custom train_test_split
+    X_train, X_test, y_train, y_test = train_test_sets(pp_df, feature_names)
+    
+    print(X_train.head())
+    
 
 
 

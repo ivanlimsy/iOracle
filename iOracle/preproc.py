@@ -37,12 +37,9 @@ class preproc:
         # add Adj Close to feature_names
         self.feature_names.append("Adj Close")
         
-        return self.df, self.feature_names
-        
     
     def add_target(self):
         self.df['5d_future_close'] = self.df['Adj Close'].shift(-5)
-        return self.df
     
     
     def scale_features(self):
@@ -51,10 +48,20 @@ class preproc:
         #fit and transform features
         self.df[self.feature_names] = scaler.fit_transform(self.df[self.feature_names])
         #Show scaled features
-        return self.df
 
     def get_X(self):
         return self.df[self.feature_names]   
     
-    
+    def rf_main(self):
+        self.add_features()
+        self.add_target()
+        self.scale_features()
+        return self.df, self.feature_names
+        
+# if __name__ == "__main__":
+#     df = _get_dataframe(input('insert ticker'), start="2017-01-01", end="2022-01-01")
+#     pp = preproc(df)
+#     pp_df, feature_names = pp.rf_main()
+#     print(pp_df, feature_names)
+
 
