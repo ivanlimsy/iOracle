@@ -5,7 +5,7 @@ import pandas as pd
 from datetime import date, datetime
 from iOracle import data
 from iOracle.preproc import preproc
-
+from iOracle.params import BUCKET_NAME, MODEL_FOLDER
 
 
 def subtract_years(dt, years):
@@ -28,8 +28,8 @@ def get_X_test_RF(df, start, end):
     pp.scale_features()
     return pp.get_X()
 
-bucket = 'ioracle_data'
-bucket_folder = 'joblib'
+bucket = BUCKET_NAME
+bucket_folder = MODEL_FOLDER
 model_name = 'rf_random.joblib'
 
 def download_model(model_name):
@@ -41,14 +41,23 @@ def download_model(model_name):
     os.remove('model.joblib')
     return model
 
-
-
-if __name__ == '__main__':
-    df = get_df('aapl')
+def main(ticker_name):
+    df = get_df(ticker_name)
     rf_test = get_X_test_RF(df, start, end).iloc[-35:]
     rf_model = download_model(model_name)
-    rf_pred = rf_model.predict(rf_test)
-    print(rf_pred)
 
+    #get indices
+    # get indices
+    index = df.index[-30:]
+    index = list(index)
+    index = [x.date() for x in index]
+    index.extend([f'Day{n}' for n in range(1, 6)])
 
+    # get predictions
+    pred = rf_model.predict(rf_test)
+    pred_df = pd.DataFrame(pred, index=index, columns=['pred'])
 
+    return pred_df
+
+if __name__ == '__main__':
+    print(main('aapl'))
