@@ -31,7 +31,3 @@ response = requests.get(
     params=params).json()
 
 st.write(response['prediction'])
-
-
-
-
