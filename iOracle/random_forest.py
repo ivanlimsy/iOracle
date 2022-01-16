@@ -7,7 +7,7 @@ import ta
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import cross_validate, ParameterGrid, train_test_split, GridSearchCV, RandomizedSearchCV, learning_curve
-from sklearn import metrics
+from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 from ta.momentum import RSIIndicator
 from ta.trend import SMAIndicator
@@ -32,20 +32,20 @@ def train_test_sets(scaled_df, features):
     return X_train, X_test, y_train, y_test
 
 
+def split(X_train, end = '2020-12-31'):
+        split = train_val_split(X_train, end)
+        splits = split.split_by_index()
+        return splits
+
 class trainer:
-    def __init__(self, X, y):
+    def __init__(self, X, y, splits):
         """
             X: pandas DataFrame
             y: pandas Series
         """
         self.X = X
         self.y = y
-
-    
-    def split(self):
-        self.split = train_val_split(X_train, end = '2020-12-31')
-        self.splits = self.split.split_by_index()
-    
+        self.splits = splits
 
     def rf_random_grid_search(self):
         
@@ -77,15 +77,12 @@ class trainer:
     
     def run(self):
         self.model.fit(self.X, self.y)
-
-
-    
-
-
-
-
-
-
+        
+    def evaluate(self, X_test, y_test):
+        """evaluates y_test and return the MAE"""
+        y_pred = self.model.predict(X_test)
+        mae = mean_absolute_error(y_test, y_pred)
+        return round(mae, 2)
 
 
 
@@ -100,7 +97,20 @@ if __name__ == "__main__":
     # Custom train_test_split
     X_train, X_test, y_train, y_test = train_test_sets(pp_df, feature_names)
     
-    print(X_train.head())
+    # Custom nested split for time series CV
+    splits = split(X_train, end='2020-12-31')
+    print(splits)
+    
+    # # Instantiate trainer class
+    # trainer = trainer(X_train, y_train, splits)
+    
+    # # Fit model
+    # trainer.run()
+    
+    # # MAE
+    # mae = trainer.evaluate(X_test, y_test)
+    # print(mae)
+   
     
 
 
