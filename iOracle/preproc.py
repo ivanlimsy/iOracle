@@ -216,6 +216,22 @@ class preproc:
                              'y_train_df':self.y_train_df, 'y_test_df':self.y_val_df}
         return returned_data
 
+    def get_lstm_pred_X(self, date='2022-01-22'):
+        date_format = "%Y-%m-%d"
+        converted_date = dt.datetime.strptime(date, date_format)
+        end = (converted_date + dt.timedelta(days=1)).strftime("%Y-%m-%d")
+        start = (converted_date - dt.timedelta(days=500)).strftime("%Y-%m-%d")
+        self.df = _get_dataframe('AAPL', start, end)
+        self.add_features()
+        self.scale_features()
+        self.df = self.df.iloc[-30:, :]
+        self.df.drop(labels=['Open', 'High', 'Low', 'Close'], axis=1, inplace=True)
+        self.lstm_array = np.array(self.df)
+        self.lstm_shape = self.lstm_array.shape
+        self.new_lstm_array = self.lstm_array.reshape((1,self.lstm_shape[0],self.lstm_shape[1]))
+        return self.new_lstm_array
+
+
 # if __name__ == "__main__":
 #     df = _get_dataframe(input('insert ticker'), start="2017-01-01", end="2022-01-01")
 #     pp = preproc(df)
