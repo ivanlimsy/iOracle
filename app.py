@@ -3,7 +3,10 @@ import streamlit as st
 import pandas as pd
 from datetime import date
 import requests
-
+import datetime as dt
+import ta
+from ta.volatility import BollingerBands
+import matplotlib.pyplot as plt
 
 
 st.markdown("""
@@ -44,8 +47,7 @@ pred_df = pd.DataFrame(response[1])
 # st.line_chart(compare_df)
 # st.line_chart(pred_df)
 
-import matplotlib.pyplot as plt
-
+# Plot actual vs prediction
 plt.plot(compare_df['prediction'], label='prediction')
 plt.plot(compare_df['actual'], label='actual')
 plt.legend()
@@ -53,4 +55,23 @@ fig = plt.gcf()
 
 st.pyplot(fig)
 
+# Fix index and join compare_df and pred_df
+pred_df.index = [compare_df.index[n]+dt.timedelta(days=7) for n in range(-5, 0)]
+final_df = compare_df.append(pred_df)
 
+# Create bollinger bands
+hband = BollingerBands(final_df['prediction'], window=5).bollinger_hband()
+mband = BollingerBands(final_df['prediction'], window=5).bollinger_mavg()
+lband = BollingerBands(final_df['prediction'], window=5).bollinger_lband()
+
+bb_series = pd.DataFrame({'hband':hband, 'mband':mband, 'lband':lband})
+
+final_df = final_df.merge(bb_series, left_index=True, right_index=True)
+
+# Plot graph
+plt.plot(final_df['hband'], label='hband')
+plt.plot(final_df['lband'], label='lband')
+plt.plot(final_df['actual'], label='actual')
+plt.plot(final_df['prediction'], label='prediction')
+plt.fill_between(final_df.index, final_df['hband'], final_df['lband'], alpha=0.2)
+plt.legend()
