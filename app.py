@@ -1,3 +1,4 @@
+from platform import platform
 import streamlit as st
 import pandas as pd
 from datetime import date
@@ -40,8 +41,16 @@ compare_df.columns = ['prediction', 'actual']
 pred_df = pd.DataFrame(response[1])
 # final_df = compare_df.append(pred_df)
 
-st.line_chart(compare_df)
-st.line_chart(pred_df)
+# st.line_chart(compare_df)
+# st.line_chart(pred_df)
 
+import matplotlib.pyplot as plt
+
+plt.plot(compare_df['prediction'], label='prediction')
+plt.plot(compare_df['actual'], label='actual')
+plt.legend()
+fig = plt.gcf()
+
+st.pyplot(fig)
 
 
