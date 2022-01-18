@@ -22,11 +22,13 @@ def get_df(ticker_name):
     df = data._get_dataframe(ticker_name, start, end)
     return df
 
-def get_X_test_RF(df, start, end):
-    pp = preproc(df, start, end)
-    pp.add_features()
-    pp.scale_features()
-    return pp.get_X()
+def get_train_df(ticker_name):
+    df = data.read_local(f"../raw_data/{ticker_name}_train.csv")
+    return df
+
+def get_X_test_RF(df, train_df, start, end):
+    pp = preproc(df, start=start, end=end, train_df=train_df)
+    return pp.get_RF_pred_X()
 
 bucket = BUCKET_NAME
 bucket_folder = MODEL_FOLDER
@@ -44,20 +46,28 @@ def download_model(model_name):
 
 def main(ticker_name):
     df = get_df(ticker_name)
-    rf_test = get_X_test_RF(df, start, end).iloc[-35:]
-    rf_model = download_model(model_name)
+    actual_df = df[['Adj Close']].rename(columns={'Adj Close': 'actual'}).iloc[-30:]
 
-    #get indices
-    # get indices
-    index = df.index[-30:]
-    index = list(index)
-    index = [x.date() for x in index]
-    index.extend([f'Day{n}' for n in range(1, 6)])
+    train_df =  get_train_df(ticker_name)
+    rf_test = get_X_test_RF(df,train_df, start, end).iloc[-35:]
+    rf_model = download_model(model_name)
 
     # get predictions
     pred = rf_model.predict(rf_test)
-    pred_df = pd.DataFrame(pred, index=index, columns=['prediction'])
-    return pred_df
+    
+    # get comparison with actual results
+    ind_compare = actual_df.index
+    compare_df = pd.DataFrame(pred[:30], index=ind_compare, columns=['compare'])
+    compare_df = compare_df.join(actual_df)
+
+    # actual predictions
+    ind_pred = [f'Day {n}' for n in range(1, 6)]
+    pred_df = pd.DataFrame(pred[-5:], index=ind_pred, columns=['prediction'])
+
+    # final output
+    return compare_df, pred_df
+
 
 if __name__ == '__main__':
     print(main('aapl'))
+

@@ -12,10 +12,12 @@ from sklearn.preprocessing import StandardScaler
 
 class preproc:
 
-    def __init__(self, df, start="2017-01-01", end="2022-01-01"):
+    def __init__(self, df, start="2017-01-01", end="2022-01-01", train_df=''):
         self.df = df
         self.start = start
         self.end = end
+        if not(isinstance(train_df, str)):
+            self.train_df = train_df
 
 
     def add_features(self):
@@ -42,12 +44,23 @@ class preproc:
     def add_target(self):
         self.df['5d_future_close'] = self.df['Adj Close'].shift(-5)
 
-
     def scale_features(self):
         #Instantiate scaler
         scaler = StandardScaler()
         #fit and transform features
         self.df[self.feature_names] = scaler.fit_transform(self.df[self.feature_names])
+        #Show scaled features
+
+    def scale_features_pred(self):
+        #Instantiate scaler
+        pp = preproc(self.train_df)
+        pp.add_features()
+        train_df = pp.df
+        scaler = StandardScaler()
+        #fit to original training data
+        scaler.fit(train_df[self.feature_names])
+        #transform
+        self.df[self.feature_names] = scaler.transform(self.df[self.feature_names])
         #Show scaled features
 
     def get_X(self):
@@ -230,6 +243,13 @@ class preproc:
         self.lstm_shape = self.lstm_array.shape
         self.new_lstm_array = self.lstm_array.reshape((1,self.lstm_shape[0],self.lstm_shape[1]))
         return self.new_lstm_array
+
+    def get_RF_pred_X(self):
+        self.add_features()
+        self.scale_features_pred()
+        return self.get_X()
+
+
 
 
 # if __name__ == "__main__":
