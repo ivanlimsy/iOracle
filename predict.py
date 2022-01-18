@@ -53,18 +53,24 @@ def main(ticker_name):
     df = get_df(ticker_name)
     actual_df = df[['Adj Close']].rename(columns={'Adj Close': 'actual'}).iloc[-30:]
 
+    # get X
     train_df =  get_train_df(ticker_name)
-    # rf_pred = get_X_pred_RF(df,train_df, start, end).iloc[-35:]
+    rf_X_pred = get_X_pred_RF(df,train_df, start, end).iloc[-35:]
     lstm_X_pred = get_X_pred_lstm(df,train_df, start, end)[-35:]
+ 
+    #download models
+    rf_model = download_model(rf_model_name)
     lstm_model = download_model(lstm_model_name)
 
     # get predictions
-    lstm_pred = lstm_model.predict(lstm_X_pred)
+    rf_pred = rf_model.predict(rf_X_pred)
+    lstm_pred = lstm_model.predict(lstm_X_pred).flatten()
     
-    # # get comparison with actual results
-    # ind_compare = actual_df.index
-    # compare_df = pd.DataFrame(pred[:30], index=ind_compare, columns=['prediction'])
-    # compare_df = compare_df.join(actual_df)
+    # get comparison with actual results
+
+    ind_compare = actual_df.index
+    compare_df = pd.DataFrame([rf_pred[:30], lstm_pred[:30]], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
+    compare_df = compare_df.join(actual_df)
 
     # # actual predictions
     # ind_pred = [ind_compare[n]+timedelta(days=7) for n in range(-5, 0)]
@@ -72,8 +78,7 @@ def main(ticker_name):
 
     # final output
     # return compare_df, pred_df
-    return lstm_pred
-
+    return compare_df
 
 
 if __name__ == '__main__':
