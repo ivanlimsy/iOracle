@@ -243,7 +243,7 @@ class preproc:
             #(29-30+1):(29+1) >> 0:30
             lstm_pred_X.append(np.array(lstm_pred_X_df.iloc[(i-30+1):i+1,:]))
         lstm_pred_X = np.array(lstm_pred_X)
-        return lstm_pred_X[0][-35:]
+        return lstm_pred_X[-35:]
 
     def get_RF_pred_X(self):
         self.add_features()
