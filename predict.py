@@ -65,12 +65,17 @@ def main(ticker_name):
     # get predictions
     rf_pred = rf_model.predict(rf_X_pred)
     lstm_pred = lstm_model.predict(lstm_X_pred).flatten()
+
+    # prep for ensemble
+    linear_X_pred = pd.DataFrame([rf_pred, lstm_pred], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
+    # carry on here
+
     
     # get comparison with actual results
 
     ind_compare = actual_df.index
-    compare_df = pd.DataFrame([rf_pred[:30], lstm_pred[:30]], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
-    compare_df = compare_df.join(actual_df)
+    
+    # compare_df = compare_df.join(actual_df)
 
     # # actual predictions
     # ind_pred = [ind_compare[n]+timedelta(days=7) for n in range(-5, 0)]

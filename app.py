@@ -44,16 +44,7 @@ compare_df.columns = ['prediction', 'actual']
 pred_df = pd.DataFrame(response[1])
 # final_df = compare_df.append(pred_df)
 
-# st.line_chart(compare_df)
-# st.line_chart(pred_df)
 
-# Plot actual vs prediction
-plt.plot(compare_df['prediction'], label='prediction')
-plt.plot(compare_df['actual'], label='actual')
-plt.legend()
-fig = plt.gcf()
-
-st.pyplot(fig)
 
 # Fix index and join compare_df and pred_df
 pred_df.index = [compare_df.index[n]+dt.timedelta(days=7) for n in range(-5, 0)]
@@ -75,3 +66,6 @@ plt.plot(final_df['actual'], label='actual')
 plt.plot(final_df['prediction'], label='prediction')
 plt.fill_between(final_df.index, final_df['hband'], final_df['lband'], alpha=0.2)
 plt.legend()
+fig = plt.gcf()
+
+st.pyplot(fig)
