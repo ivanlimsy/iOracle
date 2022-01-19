@@ -214,6 +214,7 @@ class preproc:
 
     def lstm_main(self, op='trainval'):
         self.add_features()
+        return self.df
         self.add_target()
         self.scale_features()
         if op == 'trainval':
@@ -237,7 +238,18 @@ class preproc:
         # self.df = _get_dataframe('AAPL', start, end)
         # self.add_features()
         # self.scale_features()
-        lstm_pred_X_df = self.get_RF_pred_X()
+        self.add_features()
+        self.feature_names = ['Adj Close', 'Volume', '14d bbwidth', '14d rsi', '14d ma',
+                              '50d bbwidth', '50d rsi', '50d ma', '200d bbwidth', '200d rsi', '200d ma',
+                              'VIX']
+
+        #LSTM model's order of features are as follows
+        # ['Adj Close', 'Volume', 'w_bol_14', 'rsi_14', 'ma_14', 'w_bol_50',
+        #     'rsi_50', 'ma_50', 'w_bol_200', 'rsi_200', 'ma_200',
+        #     'vix_adj_close']
+        self.scale_features_pred()
+        lstm_pred_X_df = self.get_X()
+        # lstm_pred_X_df = self.get_RF_pred_X()      #Commented out to manually reorder features
         lstm_pred_X = []
         for i in range((30 - 1), (len(lstm_pred_X_df) - 1)):
             #(29-30+1):(29+1) >> 0:30
