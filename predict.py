@@ -52,6 +52,7 @@ def download_model(model_name):
 def main(ticker_name):
     df = get_df(ticker_name)
     actual_df = df[['Adj Close']].rename(columns={'Adj Close': 'actual'}).iloc[-30:]
+    ind_compare = actual_df.index
 
     # get X
     train_df =  get_train_df(ticker_name)
@@ -67,13 +68,13 @@ def main(ticker_name):
     lstm_pred = lstm_model.predict(lstm_X_pred).flatten()
 
     # prep for ensemble
-    linear_X_pred = pd.DataFrame([rf_pred, lstm_pred], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
+    linear_X_pred = pd.DataFrame([rf_pred[:30], lstm_pred[:30]], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
     # carry on here
 
     
     # get comparison with actual results
 
-    ind_compare = actual_df.index
+    
     
     # compare_df = compare_df.join(actual_df)
 
@@ -83,7 +84,7 @@ def main(ticker_name):
 
     # final output
     # return compare_df, pred_df
-    return compare_df
+    return linear_X_pred
 
 
 if __name__ == '__main__':
