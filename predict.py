@@ -23,7 +23,7 @@ def get_df(ticker_name):
     return df
 
 def get_train_df(ticker_name):
-    df = data.read_local(f"../raw_data/{ticker_name}_train.csv")
+    df = data.read_local(f"raw_data/{ticker_name}_train.csv")
     return df
 
 def get_X_pred_RF(df, train_df, start, end):
