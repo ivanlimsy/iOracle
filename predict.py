@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta
 from iOracle import data
 from iOracle.preproc import preproc
 from iOracle.params import BUCKET_NAME, MODEL_FOLDER
+from sklearn.metrics import mean_absolute_error
 
 
 def subtract_years(dt, years):
@@ -44,47 +45,47 @@ def download_model(model_name):
     client = storage.Client.from_service_account_json('service-account-file.json').bucket(bucket)
     storage_location = f'{bucket_folder}/{model_name}'
     blob = client.blob(storage_location)
-    blob.download_to_filename('model.joblib')
-    model = joblib.load('model.joblib')
-    os.remove('model.joblib')
+    blob.download_to_filename(f'{model_name}.joblib')
+    model = joblib.load(f'{model_name}.joblib')
+    os.remove(f'{model_name}.joblib')
     return model
 
 def main(ticker_name):
     df = get_df(ticker_name)
     actual_df = df[['Adj Close']].rename(columns={'Adj Close': 'actual'}).iloc[-30:]
-    ind_compare = actual_df.index
 
     # get X
     train_df =  get_train_df(ticker_name)
-    rf_X_pred = get_X_pred_RF(df,train_df, start, end).iloc[-35:]
-    lstm_X_pred = get_X_pred_lstm(df,train_df, start, end)[-35:]
- 
+    df1 = df.copy()
+    rf_X_pred = get_X_pred_RF(df1,train_df, start, end).iloc[-35:]
+    df2=df.copy()
+    lstm_X_pred = get_X_pred_lstm(df2,train_df, start, end)[-35:]
+    
     #download models
     rf_model = download_model(rf_model_name)
     lstm_model = download_model(lstm_model_name)
 
-    # get predictions
+    # # get predictions
     rf_pred = rf_model.predict(rf_X_pred)
     lstm_pred = lstm_model.predict(lstm_X_pred).flatten()
 
-    # prep for ensemble
-    linear_X_pred = pd.DataFrame([rf_pred[:30], lstm_pred[:30]], columns=ind_compare, index=['RF_pred', 'LSTM_pred']).T
-    # carry on here
+    # # prep for ensemble
+    ensemble_X_pred = pd.DataFrame({'RF_pred':rf_pred[:30], 'LSTM_pred':lstm_pred[:30]})
+    ensemble_model_name = 'rf_lstm_linear.joblib'
+    ensemble_model = download_model(ensemble_model_name)
+    ensemble_pred = ensemble_model.predict(ensemble_X_pred)
 
     
     # get comparison with actual results
-
+    compare_df = pd.DataFrame({'prediction': ensemble_pred[:30]}, index = actual_df.index).join(actual_df)
+    mae = mean_absolute_error(compare_df['actual'], compare_df['prediction'])
     
+    pred_df = pd.DataFrame({'prediction': ensemble_pred[-5:]})
     
-    # compare_df = compare_df.join(actual_df)
-
-    # # actual predictions
-    # ind_pred = [ind_compare[n]+timedelta(days=7) for n in range(-5, 0)]
-    # pred_df = pd.DataFrame(pred[-5:], index=ind_pred, columns=['prediction'])
 
     # final output
-    # return compare_df, pred_df
-    return linear_X_pred
+    return compare_df, pred_df, mae
+
 
 
 if __name__ == '__main__':
