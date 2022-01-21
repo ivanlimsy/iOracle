@@ -5,8 +5,6 @@ import datetime as dt
 import ta
 from ta.volatility import BollingerBands
 import matplotlib.pyplot as plt
-import plotly.express as px
-
 
 st.title('iOracle')
 st.subheader('Predicting the Future Prices of Apple Stock with Machine Learning')
@@ -20,9 +18,8 @@ st.markdown('''
 # sidebar choices
 side = st.sidebar
 
-side.markdown('## Choose the stock and the number of days to predict')
+side.markdown('## Choose the stock to predict')
 stock = side.selectbox("Stock", ("Apple",))
-# num_days = side.slider(f"Number of Days from {date.today()}", 1, 14, value=5, step =1)
 
 # can add more in future
 ticker_dict  = {'Apple': 'aapl'}
@@ -31,7 +28,7 @@ ticker_dict  = {'Apple': 'aapl'}
 api_url = "https://ioracle-dh3l3t4ama-ew.a.run.app/predict"
 
 ### might need to change 
-params = {"ticker_name": ticker_dict.get(stock, 0)}
+params = {"ticker_name": ticker_dict.get(stock)}
 
 response = requests.get(
     api_url,
@@ -71,6 +68,7 @@ plt.legend()
 plt.title('Model Predictions: Actual vs Predicted')
 plt.xlabel('Date')
 plt.ylabel('Price')
+plt.grid()
 fig = plt.gcf()
 # Plot error
 # compare_df['error'] = compare_df['prediction'] - compare_df['actual']
@@ -79,4 +77,4 @@ fig = plt.gcf()
 st.pyplot(fig)
 
 
-st.metric("MAE in dollars", "<MAE>")
+st.metric("MAE in dollars", f"{round(response[2],2)}")
