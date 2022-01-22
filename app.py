@@ -23,7 +23,7 @@ stock = side.selectbox("Stock", ("Apple",))
 ticker_dict  = {'Apple': 'aapl'}
 
 # get api
-api_url = "https://ioracle-dh3l3t4ama-ew.a.run.app/predict"
+api_url = "https://ioraclev2-dh3l3t4ama-ew.a.run.app/predict"
 
 ### might need to change 
 params = {"ticker_name": ticker_dict.get(stock)}

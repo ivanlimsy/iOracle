@@ -5,7 +5,7 @@ COPY api /api
 COPY raw_data /raw_data
 COPY requirements.txt /requirements.txt
 COPY service-account-file.json /service-account-file.json
-COPY predict.py /predict.py
+COPY predict_multi.py /predict_multi.py
 
 # RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
